@@ -3,7 +3,7 @@ from pprint import pprint
 from bitstring import ConstBitStream
 
 path = "./ReplayFiles/Match-2021-07-18_21-22-12-113/Match-2021-07-18_21-22-12-113-R01.rec"
-
+location = "./Outputs/"
 
 def dump(obj):
     for attr in dir(obj):
@@ -22,11 +22,17 @@ found.append(-1)
 
 with open(path, 'rb') as fh:
     for item in found:
+
+        f = open(location+str(fh.tell())+"-"+str(item)+".decompressed", "wb")
+
         dctx = zstandard.ZstdDecompressor()
         reader = dctx.stream_reader(fh)
         while True:
-            if fh.tell() < item or item == -1:
+            if fh.tell() >= item or item == -1:
                 break
             chunk = reader.read(16384)
             if not chunk:
                 break
+            f.write(chunk)
+        f.close()
+        fh.seek(item-1)

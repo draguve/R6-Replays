@@ -1,38 +1,58 @@
 import zstandard
-from pprint import pprint
-from bitstring import ConstBitStream
+import random
+import string
+import os
 
 path = "./ReplayFiles/Match-2021-07-18_21-22-12-113/Match-2021-07-18_21-22-12-113-R01.rec"
 location = "./Outputs/"
-
-def dump(obj):
-    for attr in dir(obj):
-        if attr.__str__()[0] == '_':
-            continue
-        print("obj.%s = %r" % (attr, getattr(obj, attr)))
+temp = "./Tmp/"
 
 
-s = ConstBitStream(filename=path)
-found = list(s.findall('0x28b52ffd', bytealigned=True))
-if found:
-    found = found[1:]
-    pprint(found)
+def random_sting(n):
+    return ''.join(random.choices(string.ascii_uppercase + string.digits, k=n))
 
-found.append(-1)
-
+streams = []
+names = []
 with open(path, 'rb') as fh:
-    for item in found:
+    index = -1
+    writers = []
 
-        f = open(location+str(fh.tell())+"-"+str(item)+".decompressed", "wb")
+    while data := fh.read(1):
+        if data == b'\x28':
+            rest_magic = fh.read(3)
+            if rest_magic == b'\xb5\x2f\xfd':
+                index += 1
+                name = random_sting(20)
+                f = open(temp + name, "wb")
+                streams.append(f)
+                names.append(name)
+                streams[index].write(data)
+                streams[index].write(rest_magic)
+            else:
+                streams[index].write(data)
+                streams[index].write(rest_magic)
+        else:
+            streams[index].write(data)
 
+streams = [stream.close() for stream in streams]
+
+i = 0
+for name in names:
+    try:
+        stream = open(temp + name, "rb")
+        f = open(location + "stream_" + str(i) + ".decompressed", "wb")
         dctx = zstandard.ZstdDecompressor()
-        reader = dctx.stream_reader(fh)
+        reader = dctx.stream_reader(stream)
         while True:
-            if fh.tell() >= item or item == -1:
-                break
             chunk = reader.read(16384)
             if not chunk:
                 break
             f.write(chunk)
+        i += 1
         f.close()
-        fh.seek(item-1)
+        stream.close()
+    except zstandard.ZstdError:
+        f.close()
+        stream.close()
+    finally:
+        os.remove(temp+name)

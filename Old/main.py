@@ -4,7 +4,7 @@ import string
 import os
 import sys
 
-path = "./ReplayFiles/Match-2021-07-18_21-22-12-113/Match-2021-07-18_21-22-12-113-R01.rec"
+path = "./ReplayFiles/Match-2021-07-22_22-54-32-197-R02.rec"
 location = "./Outputs/"
 temp = "./Tmp/"
 
@@ -56,6 +56,7 @@ def main():
             dctx = zstandard.ZstdDecompressor()
             reader = dctx.stream_reader(stream)
             while True:
+                print("t = " + str(reader.tell()))
                 chunk = reader.read(16384)
                 if not chunk:
                     break
@@ -64,11 +65,14 @@ def main():
             f.close()
             stream.close()
         except zstandard.ZstdError:
+            print("location?= " + str(stream.tell()))
+            print("filename = " + name)
             # TODO: it kindof crashes here on the last stream. fails to find the zstd frame
             f.close()
             stream.close()
         finally:
-            os.remove(temp + name)
+            #os.remove(temp + name)
+            pass
 
 
 if __name__ == "__main__":

@@ -2,3 +2,5 @@
 R6/
 Outputs/*
 Tmp/*
+node_modules/
+ReplayFiles/

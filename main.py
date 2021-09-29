@@ -8,6 +8,12 @@ path = "./ReplayFiles/Match-2021-09-30_00-01-50-55-R01.rec"
 location = "./Outputs/"
 temp = "./Tmp/"
 
+Verbose = True
+
+def verbose(data):
+    if(Verbose):
+        print(data)
+
 def random_sting(n):
     return ''.join(random.choices(string.ascii_uppercase + string.digits, k=n))
 
@@ -68,12 +74,6 @@ def extract(filename,output,delete = False):
         if(delete):
             os.remove(filename)
 
-def main():
-    # temp = getHeader()
-    # extracted = extract(temp,location + "Test.de",True)
-
-    getInfo(location + "Test.de")
-
 def convert(data):
     return " ".join("{:02x}".format(x) for x in data)
 
@@ -92,20 +92,42 @@ def get_settings(fh):
     value = get_string(fh)
     return (variable,value)
 
+def get_player(last,fh):
+    playerid = last[1]
+    playerName = get_settings(fh)[1]
+    team = get_settings(fh)[1]
+    heroname = get_settings(fh)[1]
+    alliance = get_settings(fh)[1]
+    roleimage =  get_settings(fh)[1]
+    rolename = get_settings(fh)[1]
+    roleportrait =  get_settings(fh)[1]
+    print(playerName + " : " + rolename )
+    
+
 def getInfo(filename):
     with open(filename, 'rb') as fh:
         if fh.read(7) != b'dissect':
             print("not dissect")
         
-        print("number after dissect : " + convert(fh.read(2)))   
-        print("3 bytes 00  no clue : " + convert(fh.read(3)))
-        print("Dissect Version? : " + get_string(fh))
-        print("16 bytes no clue : " + convert(fh.read(16)))
+        verbose("number after dissect : " + convert(fh.read(2)))   
+        verbose("3 bytes 00  no clue : " + convert(fh.read(3)))
+        verbose("Dissect Version? : " + get_string(fh))
+        verbose("16 bytes no clue : " + convert(fh.read(16)))
+
         while settings := get_settings(fh) :
             if(settings[0] == "id"):
                 print("MatchID : " + settings[1])
                 break
+            elif(settings[0] == "playerid"):
+                get_player(settings,fh)
             else:
                 print("Data : "+ settings[0] + " ------  " + settings[1])
         
+def main():
+    # temp = getHeader()
+    # extracted = extract(temp,location + "Test.de",True)
+
+    getInfo(location + "Test.de")
+
+
 main()

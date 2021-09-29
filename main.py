@@ -4,9 +4,7 @@ import string
 import os
 import struct
 
-path = "./ReplayFiles/Match-2021-09-30_00-01-50-55-R01.rec"
-location = "./Outputs/"
-temp = "./Tmp/"
+tempDir = "./Tmp/"
 
 Verbose = True
 
@@ -22,16 +20,15 @@ def ensure_dir(file_path):
     if not os.path.exists(directory):
         os.makedirs(directory)
 
-def getHeader():
-    ensure_dir(location)
-    ensure_dir(temp)
+def getHeader(path):
+    
 
     with open(path, 'rb') as fh:
         magic_check = fh.read(4)
         if magic_check != b'\x28\xb5\x2f\xfd':
             return None
         
-        tempFile = temp + random_sting(8)
+        tempFile = tempDir + random_sting(16) + ".compressed"
         leadingFile = open(tempFile,"wb")
         leadingFile.write(magic_check)
 
@@ -49,8 +46,9 @@ def getHeader():
             else:
                 leadingFile.write(data)
 
-def extract(filename,output,delete = False):  
+def extract(filename,delete = False):  
     try:
+        output = tempDir + random_sting(16) + ".decompressed"
         stream = open(filename, "rb")
         f = open(output , "wb")
         dctx = zstandard.ZstdDecompressor()
@@ -103,8 +101,7 @@ def get_player(last,fh):
     roleportrait =  get_settings(fh)[1]
     print(playerName + " : " + rolename )
     
-
-def getInfo(filename):
+def getInfo(filename,delete = False):
     with open(filename, 'rb') as fh:
         if fh.read(7) != b'dissect':
             print("not dissect")
@@ -122,12 +119,16 @@ def getInfo(filename):
                 get_player(settings,fh)
             else:
                 print("Data : "+ settings[0] + " ------  " + settings[1])
-        
+    if(delete):
+        os.remove(filename)
+
 def main():
-    # temp = getHeader()
-    # extracted = extract(temp,location + "Test.de",True)
+    #ensure_dir(location)
+    
+    ensure_dir(tempDir)
 
-    getInfo(location + "Test.de")
-
+    temp = getHeader("./ReplayFiles/Match-2021-09-30_00-01-50-55-R01.rec")
+    extracted = extract(temp,True)
+    getInfo(extracted,True)
 
 main()

@@ -3,6 +3,7 @@ import random
 import string
 import os
 import struct
+import sys
 
 tempDir = "./Tmp/"
 
@@ -21,8 +22,6 @@ def ensure_dir(file_path):
         os.makedirs(directory)
 
 def getHeader(path):
-    
-
     with open(path, 'rb') as fh:
         magic_check = fh.read(4)
         if magic_check != b'\x28\xb5\x2f\xfd':
@@ -124,11 +123,23 @@ def getInfo(filename,delete = False):
 
 def main():
     #ensure_dir(location)
-    
-    ensure_dir(tempDir)
 
-    temp = getHeader("./ReplayFiles/Match-2021-09-30_00-01-50-55-R01.rec")
+    ensure_dir(tempDir)
+    if len(sys.argv) < 2:
+        print("usage: python main.py <file_path>")
+        return
+    filename = sys.argv[1]
+    if not os.path.isfile(filename):
+        print("File does not exist")
+        return
+
+    temp = getHeader(filename)
+    if(temp == None):
+        print("Check file : Could not find magic")
     extracted = extract(temp,True)
+    if(extracted == None):
+        print("Check file : Extraction Failed")
     getInfo(extracted,True)
 
-main()
+if __name__ == "__main__":
+    main()

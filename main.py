@@ -9,6 +9,17 @@ tempDir = "./Tmp/"
 
 Verbose = True
 
+maps = {
+    "837214085": "Clubhouse",
+    "305979357167" : "Border",
+    "1460220617" : "Kanal",
+    "276279025182" : "Skyscraper",
+    "53627213396" : "Tower",
+    "259816839773" : "Chalet",
+    "355496559878" : "Bank",
+    "231702797556" : "Oregon"
+}
+
 def verbose(data):
     if(Verbose):
         print(data)
@@ -80,7 +91,7 @@ def get_string(fh):
     if(fh.read(7) != b'\x00\x00\x00\x00\x00\x00\x00'):
         print("String Check Failed")
         return None
-    return fh.read(value).decode('ASCII')
+    return fh.read(value).decode('UTF-8')
 
 def get_settings(fh):
     variable = get_string(fh)
@@ -88,6 +99,13 @@ def get_settings(fh):
         print("Failed Getting Setting")
     value = get_string(fh)
     return (variable,value)
+
+def worldid(settings):
+    print("MAP : " + maps.get(settings[1],settings[1]),)
+
+def round_number(settings,fh):
+    overtimeround = int(get_settings(fh)[1]) +  int(settings[1])
+    print("Round Number : " + str(overtimeround))
 
 def get_player(last,fh):
     playerid = last[1]
@@ -116,6 +134,10 @@ def getInfo(filename,delete = False):
                 break
             elif(settings[0] == "playerid"):
                 get_player(settings,fh)
+            elif(settings[0] == "roundnumber"):
+                round_number(settings,fh)
+            elif settings[0] == "worldid":
+                worldid(settings)
             else:
                 print("Data : "+ settings[0] + " ------  " + settings[1])
     if(delete):

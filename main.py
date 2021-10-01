@@ -7,7 +7,7 @@ import sys
 
 tempDir = "./Tmp/"
 
-Verbose = True
+Verbose = False
 
 maps = {
     "837214085": "Clubhouse",
@@ -139,7 +139,7 @@ def getInfo(filename,delete = False):
             elif settings[0] == "worldid":
                 worldid(settings)
             else:
-                print("Data : "+ settings[0] + " ------  " + settings[1])
+                verbose("Data : "+ settings[0] + " ------  " + settings[1])
     if(delete):
         os.remove(filename)
 

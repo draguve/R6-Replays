@@ -7,7 +7,7 @@ import sys
 
 tempDir = "./Tmp/"
 
-Verbose = False
+Verbose = True
 
 maps = {
     "837214085": "Clubhouse",
@@ -118,6 +118,29 @@ def get_player(last,fh):
     roleportrait =  get_settings(fh)[1]
     print(playerName + " : " + rolename )
     
+#MAYBE NO CLUE IF THIS IS THE LOADOUT 
+def get_loadout_packet(fh,special_bytes):
+    code = fh.read(2)
+    code2 = fh.read(3)
+    data = fh.read(7)
+    verbose(convert(code + code2) + " : " + convert(data))
+    if(special_bytes == code):
+        verbose("7 00 bytes "+convert(fh.read(7)))
+        code = fh.read(29)
+        verbose(convert(code[0:2]) + " : "+convert(code[2:]))
+        return False
+    return True
+
+def get_spec_packet(fh,special_byte):
+    code = fh.read(2)
+    if convert(code) == "62 73":
+        fh.seek(-2,1)
+        return False
+    else:
+        data = fh.read(27)
+        verbose(convert(code[0:2]) + " : "+convert(data))
+        return code+data
+
 def getInfo(filename,delete = False):
     with open(filename, 'rb') as fh:
         if fh.read(7) != b'dissect':
@@ -126,7 +149,9 @@ def getInfo(filename,delete = False):
         verbose("number after dissect : " + convert(fh.read(2)))   
         verbose("3 bytes 00  no clue : " + convert(fh.read(3)))
         verbose("Dissect Version? : " + get_string(fh))
-        verbose("16 bytes no clue : " + convert(fh.read(16)))
+        verbose("4 bytes of 00 no clue : " + convert(fh.read(4)))
+        special_bytes = fh.read(2)
+        verbose("10 bytes no clue : " + convert(fh.read(10)))
 
         while settings := get_settings(fh) :
             if(settings[0] == "id"):
@@ -140,6 +165,18 @@ def getInfo(filename,delete = False):
                 worldid(settings)
             else:
                 verbose("Data : "+ settings[0] + " ------  " + settings[1])
+        
+        verbose("24 bytes no clue : " + convert(fh.read(24)))
+
+        while get_loadout_packet(fh,special_bytes):
+            continue
+
+        while get_spec_packet(fh,special_bytes):
+            continue
+
+        while data := fh.read(8):
+            verbose(convert(data))
+
     if(delete):
         os.remove(filename)
 

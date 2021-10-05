@@ -20,9 +20,9 @@ maps = {
     "231702797556" : "Oregon"
 }
 
-def verbose(data):
+def verbose(data,end=None):
     if(Verbose):
-        print(data)
+        print(data,end=end)
 
 def random_sting(n):
     return ''.join(random.choices(string.ascii_uppercase + string.digits, k=n))
@@ -141,6 +141,22 @@ def get_spec_packet(fh,special_byte):
         verbose(convert(code[0:2]) + " : "+convert(data))
         return code+data
 
+def get_unknown_bytes(fh):
+
+    # code = fh.read(2)
+    # data = fh.read(114)
+    # verbose(convert(code + data))
+    # return code + data
+    last_zero = False
+    while byte := fh.read(1):
+        if convert(byte) == "00" and last_zero == False:
+            last_zero = True
+            verbose('')
+        elif convert(byte) != "00" and last_zero == True:
+            last_zero = False
+            verbose('')
+        verbose(convert(byte),end=" ")
+
 def getInfo(filename,delete = False):
     with open(filename, 'rb') as fh:
         if fh.read(7) != b'dissect':
@@ -172,6 +188,9 @@ def getInfo(filename,delete = False):
             continue
 
         while get_spec_packet(fh,special_bytes):
+            continue
+
+        while get_unknown_bytes(fh):
             continue
 
         while data := fh.read(8):

@@ -133,7 +133,7 @@ def get_loadout_packet(fh,special_bytes):
 
 def get_spec_packet(fh,special_byte):
     code = fh.read(2)
-    if convert(code) == "62 73":
+    if convert(code) == "62 73" or convert(code) == "61 73":
         fh.seek(-2,1)
         return False
     else:
@@ -167,6 +167,7 @@ def getInfo(filename,delete = False):
         verbose("Dissect Version? : " + get_string(fh))
         verbose("4 bytes of 00 no clue : " + convert(fh.read(4)))
         special_bytes = fh.read(2)
+        verbose("special? bytes :" + convert(special_bytes))
         verbose("10 bytes no clue : " + convert(fh.read(10)))
 
         while settings := get_settings(fh) :

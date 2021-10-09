@@ -25,13 +25,13 @@ In the replay system each .rec file contains the information to play one round. 
 
 you can see the magic for the zstd files in the hex and the assembly of the game binary also has a few zstd functions exported i think.
 you can decompress the entire thing with any of the zstd libs
-[magic1] [magic2]
+[magic1](docs/Magic.PNG) [magic2](docs/Magic2.PNG)
 
 ### After Decompression
 The first few bytes spell out "dissect" and then a version number i have a feeling this might be their magic for a serialization/deserialization lib or a parser. there are a few temp files in the main directory of the game with the same name iirc. 
 The first frame of zstd also holds the meta data of the match. there are also 2 bytes stored here which seem to be important later (i called these "special bytes" in the code).
-[metadata]
-after the version number the system seems to store the length,then 7 0x00 bytes then then the string, we can get quite a bit of information about the match here, date-time, operators, teamnames, maps etc... there seems to be some "gmsettings" which correspond to some game mode settings but i havent figure out how they work yet. after the match id is stored starts the part where i have no clue what anyof the bytes mean. there just seems to be a pattern that i can see but i have no clue what it means. hopefully someone smarter can figure it out.
+[metadata](docs/metadata.PNG) 
+after the version number the system seems to store the length (pink),then 7 0x00 bytes then then the string (cyan), we can get quite a bit of information about the match here (yellow), date-time, operators, teamnames, maps etc... there seems to be some "gmsettings" which correspond to some game mode settings but i havent figure out how they work yet. after the match id is stored starts the part where i have no clue what anyof the bytes mean. there just seems to be a pattern that i can see but i have no clue what it means. hopefully someone smarter can figure it out.
 
 ### the unknown stuff
 after the metadata in the strings there seems to be a 2 byte number that keeps incrementing then 3 0x00 bytes and then 7 bytes of some information, it seems like a table of somesorts but im grasping for straws here. for example:
@@ -76,4 +76,4 @@ after that ends there is what i feel individual packets of data telling us about
 01 
 `
 
-For example here the "62 73 85 fe" is repeated multiple times and the "e1 4d 43" seems to be a id for an entity. sometimes preamble becomes "60 73 85 fe" but it repeats a lot. other things the repeat are also [hex] [hex2]
+For example here the "62 73 85 fe" is repeated multiple times and the "e1 4d 43" seems to be a id for an entity. sometimes preamble becomes "60 73 85 fe" but it repeats a lot. other things the repeat are also [hex](docs/hex.PNG)  [hex2](docs/hex2.PNG) 

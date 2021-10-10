@@ -17,7 +17,7 @@ this would give you all the information. By default it prints out all the things
 python main.py <replay_path> > output.txt
 `
 
-If you want only the infomration that the script understands there is a boolean "Verbose" changing that to a False would make it so it only prints the metadata it understands. There is more information about the operators that can be obtained, if you want to make a script to extract for stats or something in the function "get_player".
+If you want only the information that the script understands there is a boolean "Verbose" changing that to a False would make it so it only prints the metadata it understands. There is more information about the operators that can be obtained, if you want to make a script to extract for stats or something in the function "get_player".
 
 
 currently you can use the script to get some basic information about the match using the script. matchid, datetime, Map*, round numbers, teamnames and the teamoperators and who was using them.

@@ -17,7 +17,8 @@ maps = {
     "53627213396" : "Tower",
     "259816839773" : "Chalet",
     "355496559878" : "Bank",
-    "231702797556" : "Oregon"
+    "231702797556" : "Oregon",
+    "1378191338" : "Kafe Dostoyevsky"
 }
 
 def verbose(data,end=None):

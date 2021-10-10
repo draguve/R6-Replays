@@ -4,6 +4,7 @@ import string
 import os
 import struct
 import sys
+from pprint import pprint
 
 tempDir = "./Tmp/"
 
@@ -22,6 +23,8 @@ maps = {
     "88107330328" : "Villa",
     "42090092951" : "Coastline"
 }
+
+teams = {}
 
 def verbose(data,end=None):
     if(Verbose):
@@ -110,6 +113,12 @@ def round_number(settings,fh):
     overtimeround = int(get_settings(fh)[1]) +  int(settings[1])
     print("Round Number : " + str(overtimeround))
 
+def teamname(setting):
+    team = setting[0][-1]
+    if not team in teams:
+        teams[team] = {}
+    teams[team]["Name"] = setting[1]
+
 def get_player(last,fh):
     playerid = last[1]
     playerName = get_settings(fh)[1]
@@ -119,7 +128,12 @@ def get_player(last,fh):
     roleimage =  get_settings(fh)[1]
     rolename = get_settings(fh)[1]
     roleportrait =  get_settings(fh)[1]
-    print(playerName + " : " + rolename )
+    if not team in teams:
+        teams[team] = {}
+    if not "players" in teams[team]:
+        teams[team]["players"] = []
+    teams[team]["players"].append({"User" : playerName,"Operator":rolename})
+    #print(playerName + " : " + rolename )
     
 #MAYBE NO CLUE IF THIS IS THE LOADOUT 
 def get_loadout_packet(fh,special_bytes):
@@ -145,11 +159,6 @@ def get_spec_packet(fh,special_byte):
         return code+data
 
 def get_unknown_bytes(fh):
-
-    # code = fh.read(2)
-    # data = fh.read(114)
-    # verbose(convert(code + data))
-    # return code + data
     last_zero = False
     while byte := fh.read(1):
         if convert(byte) == "00" and last_zero == False:
@@ -183,10 +192,14 @@ def getInfo(filename,delete = False):
                 round_number(settings,fh)
             elif settings[0] == "worldid":
                 worldid(settings)
+            elif settings[0] == "teamname0" or settings[0] == "teamname1":
+                teamname(settings)
             else:
                 verbose("Data : "+ settings[0] + " ------  " + settings[1])
         
         verbose("24 bytes no clue : " + convert(fh.read(24)))
+
+        pprint(teams)
 
         while get_loadout_packet(fh,special_bytes):
             continue

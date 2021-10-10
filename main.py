@@ -7,7 +7,7 @@ import sys
 
 tempDir = "./Tmp/"
 
-Verbose = True
+Verbose = False
 
 maps = {
     "837214085": "Clubhouse",
@@ -18,7 +18,9 @@ maps = {
     "259816839773" : "Chalet",
     "355496559878" : "Bank",
     "231702797556" : "Oregon",
-    "1378191338" : "Kafe Dostoyevsky"
+    "1378191338" : "Kafe Dostoyevsky",
+    "88107330328" : "Villa",
+    "42090092951" : "Coastline"
 }
 
 def verbose(data,end=None):

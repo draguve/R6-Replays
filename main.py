@@ -5,10 +5,13 @@ import os
 import struct
 import sys
 from pprint import pprint
+import mmap
+from shutil import copyfile
 
 tempDir = "./Tmp/"
 
-Verbose = False
+Verbose = True
+
 
 maps = {
     "837214085": "Clubhouse",
@@ -37,6 +40,13 @@ def ensure_dir(file_path):
     directory = os.path.dirname(file_path)
     if not os.path.exists(directory):
         os.makedirs(directory)
+
+def magic_check(path):
+    with open(path, 'rb') as fh:
+        magic_check = fh.read(4)
+        if magic_check != b'\x28\xb5\x2f\xfd':
+            return False
+    return True
 
 def getHeader(path):
     with open(path, 'rb') as fh:
@@ -216,6 +226,55 @@ def getInfo(filename,delete = False):
     if(delete):
         os.remove(filename)
 
+def strip_file(file_location,delete=True):
+    # Reverses a binary byte-wise in an efficient manner
+    #static_data = bytearray() #i have no clue if it is, but its just the end data
+    compressedTemp = tempDir + random_sting(16) + ".compressed"
+    staticData = compressedTemp +".static"
+    extracted = None
+    try:
+        i=17
+        copyfile(file_location,compressedTemp)
+        with open(file_location,"rb") as f:
+            # read-only access or you get an access-denied or need to use r+b permissions
+            mm = mmap.mmap(f.fileno(),0,access=mmap.ACCESS_READ)
+            rever = mm[::-1]
+
+            #dont ask me, all this is cursed 
+            #I have no clue how this works, it just does
+            # print(convert(rever[0:8]))
+            # print(convert(rever[8:8+4]))
+            # print(convert(rever[12:12+5]))
+            while True:
+                if rever[i+3:i+4] != b"\x00":
+                    break
+                #static_data.extend(rever[i:i+4])
+                #print(convert(rever[i:i+4]))
+                i = i + 4
+        with open(compressedTemp, 'rb+') as filehandle:
+                filehandle.seek(-i, os.SEEK_END)
+                with open(staticData, 'wb') as static:
+                    while data := filehandle.read(1):
+                        static.write(data)
+                filehandle.seek(-i, os.SEEK_END)
+                filehandle.truncate()
+        extracted = extract(compressedTemp,False)
+        
+        if(extracted == None):
+            print("Extraction Failed ?????")
+            return (None,None)
+    finally:
+        if(delete):
+            os.remove(compressedTemp)
+    return (extracted,staticData)
+
+def getStaticInfo(filename,delete = False):
+    with open(filename, 'rb') as fh:
+        while data := fh.read(8):
+            verbose("Data : " + convert(data))
+    if(delete):
+        os.remove(filename)
+
 def main():
     #ensure_dir(location)
 
@@ -228,13 +287,20 @@ def main():
         print("File does not exist")
         return
 
-    temp = getHeader(filename)
-    if(temp == None):
+
+    if not magic_check(filename):
         print("Check file : Could not find magic")
-    extracted = extract(temp,True)
+
+    extracted,static = strip_file(filename,True)
+    
     if(extracted == None):
         print("Check file : Extraction Failed")
-    getInfo(extracted,True)
+    
+    verbose("---------------------- DECOMPRESSED ----------------------------------")
+    getInfo(extracted,False)
+    verbose("-----------------------END BITS --------------------------------------")
+    getStaticInfo(static,False)
 
+                
 if __name__ == "__main__":
     main()

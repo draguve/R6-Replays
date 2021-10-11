@@ -41,6 +41,13 @@ def ensure_dir(file_path):
     if not os.path.exists(directory):
         os.makedirs(directory)
 
+def magic_check(path):
+    with open(path, 'rb') as fh:
+        magic_check = fh.read(4)
+        if magic_check != b'\x28\xb5\x2f\xfd':
+            return False
+    return True
+
 def getHeader(path):
     with open(path, 'rb') as fh:
         magic_check = fh.read(4)
@@ -219,26 +226,6 @@ def getInfo(filename,delete = False):
     if(delete):
         os.remove(filename)
 
-def main():
-    #ensure_dir(location)
-
-    ensure_dir(tempDir)
-    if len(sys.argv) < 2:
-        print("usage: python main.py <file_path>")
-        return
-    filename = sys.argv[1]
-    if not os.path.isfile(filename):
-        print("File does not exist")
-        return
-
-    temp = getHeader(filename)
-    if(temp == None):
-        print("Check file : Could not find magic")
-    extracted = extract(temp,True)
-    if(extracted == None):
-        print("Check file : Extraction Failed")
-    getInfo(extracted,True)
-
 def strip_file(file_location,delete=True):
     # Reverses a binary byte-wise in an efficient manner
     #static_data = bytearray() #i have no clue if it is, but its just the end data
@@ -281,6 +268,39 @@ def strip_file(file_location,delete=True):
             os.remove(compressedTemp)
     return (extracted,staticData)
 
+def getStaticInfo(filename,delete = False):
+    with open(filename, 'rb') as fh:
+        while data := fh.read(8):
+            verbose("Data : " + convert(data))
+    if(delete):
+        os.remove(filename)
+
+def main():
+    #ensure_dir(location)
+
+    ensure_dir(tempDir)
+    if len(sys.argv) < 2:
+        print("usage: python main.py <file_path>")
+        return
+    filename = sys.argv[1]
+    if not os.path.isfile(filename):
+        print("File does not exist")
+        return
+
+
+    if not magic_check(filename):
+        print("Check file : Could not find magic")
+
+    extracted,static = strip_file(filename,True)
+    
+    if(extracted == None):
+        print("Check file : Extraction Failed")
+    
+    verbose("---------------------- DECOMPRESSED ----------------------------------")
+    getInfo(extracted,False)
+    verbose("-----------------------END BITS --------------------------------------")
+    getStaticInfo(static,False)
+
                 
 if __name__ == "__main__":
-    strip_file("./ReplayFiles/Villa.rec",False)
+    main()

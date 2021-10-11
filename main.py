@@ -241,8 +241,9 @@ def main():
 
 def strip_file(file_location,delete=True):
     # Reverses a binary byte-wise in an efficient manner
-    static_data = bytearray() #i have no clue if it is, but its just the end data
+    #static_data = bytearray() #i have no clue if it is, but its just the end data
     compressedTemp = tempDir + random_sting(16) + ".compressed"
+    staticData = compressedTemp +".static"
     extracted = None
     try:
         i=17
@@ -254,18 +255,18 @@ def strip_file(file_location,delete=True):
 
             #dont ask me, all this is cursed 
             #I have no clue how this works, it just does
-            print(convert(rever[0:8]))
-            print(convert(rever[8:8+4]))
-            print(convert(rever[12:12+5]))
+            # print(convert(rever[0:8]))
+            # print(convert(rever[8:8+4]))
+            # print(convert(rever[12:12+5]))
             while True:
                 if rever[i+3:i+4] != b"\x00":
                     break
-                static_data.extend(rever[i:i+4])
-                print(convert(rever[i:i+4]))
+                #static_data.extend(rever[i:i+4])
+                #print(convert(rever[i:i+4]))
                 i = i + 4
         with open(compressedTemp, 'rb+') as filehandle:
                 filehandle.seek(-i, os.SEEK_END)
-                with open(compressedTemp+".static", 'wb') as static:
+                with open(staticData, 'wb') as static:
                     while data := filehandle.read(1):
                         static.write(data)
                 filehandle.seek(-i, os.SEEK_END)
@@ -274,12 +275,11 @@ def strip_file(file_location,delete=True):
         
         if(extracted == None):
             print("Extraction Failed ?????")
-            
+            return (None,None)
     finally:
         if(delete):
             os.remove(compressedTemp)
-            os.remove(extracted)
-            os.remove(compressedTemp+".static")
+    return (extracted,staticData)
 
                 
 if __name__ == "__main__":

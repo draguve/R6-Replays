@@ -7,30 +7,6 @@ from shutil import copyfile
 tempDir = "./Tmp/"
 inputFile = "./ReplayFiles/end.rec"
 
-# def getHeader(path):
-#     with open(path, 'rb') as fh:
-#         magic_check = fh.read(4)
-#         if magic_check != b'\x28\xb5\x2f\xfd':
-#             return None
-        
-#         tempFile = tempDir + random_sting(16) + ".compressed"
-#         leadingFile = open(tempFile,"wb")
-#         leadingFile.write(magic_check)
-
-#         #wait till next file
-#         while data := fh.read(1):
-#             if data == b'\x28':
-#                 rest_magic = fh.read(3)
-#                 if rest_magic == b'\xb5\x2f\xfd':
-#                     #file completed
-#                     leadingFile.close()
-#                     return tempFile
-#                 else:
-#                     leadingFile.write(data)
-#                     leadingFile.write(rest_magic)
-#             else:
-#                 leadingFile.write(data)
-
 def extract_till_success(path):
     removed_bytes = 0
     Success = False

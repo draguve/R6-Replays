@@ -5,10 +5,13 @@ import os
 import struct
 import sys
 from pprint import pprint
+import mmap
+from shutil import copyfile
 
 tempDir = "./Tmp/"
 
-Verbose = False
+Verbose = True
+
 
 maps = {
     "837214085": "Clubhouse",
@@ -236,5 +239,48 @@ def main():
         print("Check file : Extraction Failed")
     getInfo(extracted,True)
 
+def strip_file(file_location,delete=True):
+    # Reverses a binary byte-wise in an efficient manner
+    static_data = bytearray() #i have no clue if it is, but its just the end data
+    compressedTemp = tempDir + random_sting(16) + ".compressed"
+    extracted = None
+    try:
+        i=17
+        copyfile(file_location,compressedTemp)
+        with open(file_location,"rb") as f:
+            # read-only access or you get an access-denied or need to use r+b permissions
+            mm = mmap.mmap(f.fileno(),0,access=mmap.ACCESS_READ)
+            rever = mm[::-1]
+
+            #dont ask me, all this is cursed 
+            #I have no clue how this works, it just does
+            print(convert(rever[0:8]))
+            print(convert(rever[8:8+4]))
+            print(convert(rever[12:12+5]))
+            while True:
+                if rever[i+3:i+4] != b"\x00":
+                    break
+                static_data.extend(rever[i:i+4])
+                print(convert(rever[i:i+4]))
+                i = i + 4
+        with open(compressedTemp, 'rb+') as filehandle:
+                filehandle.seek(-i, os.SEEK_END)
+                with open(compressedTemp+".static", 'wb') as static:
+                    while data := filehandle.read(1):
+                        static.write(data)
+                filehandle.seek(-i, os.SEEK_END)
+                filehandle.truncate()
+        extracted = extract(compressedTemp,False)
+        
+        if(extracted == None):
+            print("Extraction Failed ?????")
+            
+    finally:
+        if(delete):
+            os.remove(compressedTemp)
+            os.remove(extracted)
+            os.remove(compressedTemp+".static")
+
+                
 if __name__ == "__main__":
-    main()
+    strip_file("./ReplayFiles/Villa.rec",False)

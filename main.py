@@ -50,30 +50,32 @@ def magic_check(path):
     return True
 
 def getHeader(path,delete=True):
-    with open(path, 'rb') as fh:
-        magic_check = fh.read(4)
-        if magic_check != b'\x28\xb5\x2f\xfd':
-            return None
-        
-        tempFile = tempDir + random_sting(16) + ".compressed"
-        leadingFile = open(tempFile,"wb")
-        leadingFile.write(magic_check)
+    try:
+        with open(path, 'rb') as fh:
+            magic_check = fh.read(4)
+            if magic_check != b'\x28\xb5\x2f\xfd':
+                return None
+            
+            tempFile = tempDir + random_sting(16) + ".compressed"
+            leadingFile = open(tempFile,"wb")
+            leadingFile.write(magic_check)
 
-        #wait till next file
-        while data := fh.read(1):
-            if data == b'\x28':
-                rest_magic = fh.read(3)
-                if rest_magic == b'\xb5\x2f\xfd':
-                    #file completed
-                    leadingFile.close()
-                    return tempFile
+            #wait till next file
+            while data := fh.read(1):
+                if data == b'\x28':
+                    rest_magic = fh.read(3)
+                    if rest_magic == b'\xb5\x2f\xfd':
+                        #file completed
+                        leadingFile.close()
+                        return tempFile
+                    else:
+                        leadingFile.write(data)
+                        leadingFile.write(rest_magic)
                 else:
                     leadingFile.write(data)
-                    leadingFile.write(rest_magic)
-            else:
-                leadingFile.write(data)
-    if(delete):
-        os.remove(path)
+    finally:
+        if(delete):
+            os.remove(path)
 
 def extract(filename,delete = False):  
     try:
@@ -288,8 +290,8 @@ def main():
     parser.add_argument('ReplayFile',help="R6 replay file that needs to be examined")
     parser.add_argument('-v','--verbose', action='store_true',help="Return all the information including hexdumps")
     parser.add_argument('-x','--header',action='store_true',help="Only extract the header of the compressed file")
+    parser.add_argument('-s',"--save",action='store_true',help="Save the tmp file after extraction, will only print locations of hex dumps and not print analysis")
     args = parser.parse_args()
-    print(args)
 
     Verbose = args.verbose
     filename = args.ReplayFile
@@ -310,10 +312,14 @@ def main():
     if(extracted == None):
         print("Check file : Extraction Failed")
     
-    verbose("---------------------- DECOMPRESSED ----------------------------------")
-    getInfo(extracted,False)
-    verbose("-----------------------END BITS --------------------------------------")
-    getStaticInfo(static,False)
-
+    if args.save:
+        print("Compressed data : " + extracted)
+        print("Tail Data : "+ static )
+    else:
+        verbose("---------------------- DECOMPRESSED ----------------------------------")
+        getInfo(extracted,True)
+        verbose("-----------------------END BITS --------------------------------------")
+        getStaticInfo(static,True)
+        
 if __name__ == "__main__":
     main()

@@ -8,6 +8,7 @@ pip install -r /path/to/requirements.txt
 I suggest using a venv. After install the dependencies just run it with 
 
 `
+
 usage: main.py [-h] [-v] [-x] [-s] ReplayFile
 
 positional arguments:
@@ -18,11 +19,12 @@ optional arguments:
   -v, --verbose  Return all the information including hexdumps
   -x, --header   Only extract the header of the compressed file
   -s, --save     Save the tmp file after extraction, will only print locations of hex dumps and not print analysis
+
 `
 
 this would give you all the information. By default it prints out all the things that it gets including bytes in hex that I dont understand,I generally just pipe that information into a file to read it separately using this command.
 
-** If you tell the script to extract everything (i.e. don't use the --header option) it will create huge files 30MB -> 300MB (approximate) of output **
+**If you tell the script to extract everything (i.e. don't use the --header option) it will create huge files 30MB -> 300MB (approximate) of output**
 
 `
 python main.py <replay_path> > output.txt

@@ -7,6 +7,7 @@ import sys
 from pprint import pprint
 import mmap
 from shutil import copyfile
+import argparse
 
 tempDir = "./Tmp/"
 
@@ -48,7 +49,7 @@ def magic_check(path):
             return False
     return True
 
-def getHeader(path):
+def getHeader(path,delete=True):
     with open(path, 'rb') as fh:
         magic_check = fh.read(4)
         if magic_check != b'\x28\xb5\x2f\xfd':
@@ -71,6 +72,8 @@ def getHeader(path):
                     leadingFile.write(rest_magic)
             else:
                 leadingFile.write(data)
+    if(delete):
+        os.remove(path)
 
 def extract(filename,delete = False):  
     try:
@@ -226,7 +229,9 @@ def getInfo(filename,delete = False):
     if(delete):
         os.remove(filename)
 
-def strip_file(file_location,delete=True):
+
+#returns the compressed file without the extra information at the end and a file for the extra information at the end 
+def strip_file(file_location):
     # Reverses a binary byte-wise in an efficient manner
     #static_data = bytearray() #i have no clue if it is, but its just the end data
     compressedTemp = tempDir + random_sting(16) + ".compressed"
@@ -258,14 +263,14 @@ def strip_file(file_location,delete=True):
                         static.write(data)
                 filehandle.seek(-i, os.SEEK_END)
                 filehandle.truncate()
-        extracted = extract(compressedTemp,False)
+        extracted = compressedTemp
         
         if(extracted == None):
             print("Extraction Failed ?????")
             return (None,None)
-    finally:
-        if(delete):
-            os.remove(compressedTemp)
+    except BaseException as err:
+        print(f"Unexpected {err=}, {type(err)=}")
+
     return (extracted,staticData)
 
 def getStaticInfo(filename,delete = False):
@@ -276,23 +281,32 @@ def getStaticInfo(filename,delete = False):
         os.remove(filename)
 
 def main():
+    global Verbose
     #ensure_dir(location)
 
-    ensure_dir(tempDir)
-    if len(sys.argv) < 2:
-        print("usage: python main.py <file_path>")
-        return
-    filename = sys.argv[1]
+    parser = argparse.ArgumentParser()
+    parser.add_argument('ReplayFile',help="R6 replay file that needs to be examined")
+    parser.add_argument('-v','--verbose', action='store_true',help="Return all the information including hexdumps")
+    parser.add_argument('-x','--header',action='store_true',help="Only extract the header of the compressed file")
+    args = parser.parse_args()
+    print(args)
+
+    Verbose = args.verbose
+    filename = args.ReplayFile
     if not os.path.isfile(filename):
         print("File does not exist")
         return
 
-
     if not magic_check(filename):
         print("Check file : Could not find magic")
 
-    extracted,static = strip_file(filename,True)
+    strippedfile,static = strip_file(filename)
     
+    if args.header:
+        strippedfile = getHeader(strippedfile,True)
+
+    extracted = extract(strippedfile,True)
+
     if(extracted == None):
         print("Check file : Extraction Failed")
     
@@ -301,6 +315,5 @@ def main():
     verbose("-----------------------END BITS --------------------------------------")
     getStaticInfo(static,False)
 
-                
 if __name__ == "__main__":
     main()

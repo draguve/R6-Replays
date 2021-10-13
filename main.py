@@ -8,6 +8,7 @@ from pprint import pprint
 import mmap
 from shutil import copyfile
 import argparse
+from collections import deque
 
 tempDir = "./Tmp/"
 
@@ -150,6 +151,12 @@ def get_player(last,fh):
     teams[team]["players"].append({"User" : playerName,"Operator":rolename})
     #print(playerName + " : " + rolename )
     
+def compare(queue,data):
+    for (a, q) in zip(queue, data):
+        if a != q:
+            return False
+    return True
+
 #MAYBE NO CLUE IF THIS IS THE LOADOUT 
 def get_loadout_packet(fh,special_bytes):
     code = fh.read(2)
@@ -163,17 +170,70 @@ def get_loadout_packet(fh,special_bytes):
         return False
     return True
 
-def get_spec_packet(fh,special_byte):
-    code = fh.read(2)
-    if convert(code) == "62 73" or convert(code) == "61 73":
-        fh.seek(-2,1)
-        return False
+def get_spec_packet(fh):
+    code = fh.read(29)
+    if code[17:21] == b'\xff\xff\xff\xff':
+        verbose(convert(code))
+        return code
     else:
-        data = fh.read(27)
-        verbose(convert(code[0:2]) + " : "+convert(data))
-        return code+data
+        fh.seek(-29,1)
+        return False 
+    # if convert(code) == "62 73" or convert(code) == "61 73":
+    #     fh.seek(-2,1)
+    #     return False
+    # else:
+    #     data = fh.read(27)
+    #     verbose(convert(code[0:2]) + " : "+convert(data))
+    #     return code+data
 
 def get_unknown_bytes(fh):
+    # last_zero = False
+    # queue = deque(maxlen=4)
+    # queue.append(fh.read(1)) 
+    # queue.append(fh.read(1)) 
+    # queue.append(fh.read(1)) 
+    # while byte := fh.read(1):
+    #     queue.append(byte)
+    #     if(compare(queue,[b'\x62',b'\x73',b'\x85',b'\xfe'])):
+    #         verbose('62 73 85 fe ',end=" ")
+    #         verbose(convert(fh.read(112)),end=" ")
+    #         verbose('')
+    #         queue.clear()
+    #     else:
+    #         if convert(byte) == "00" and last_zero == False:
+    #             last_zero = True
+    #             verbose('')
+    #         elif convert(byte) != "00" and last_zero == True:
+    #             last_zero = False
+    #             verbose('')
+    #         verbose(convert(byte),end=" ")
+    
+    # last_zero = False
+    # while byte := fh.read(1):
+    #     if convert(byte) == "00" and last_zero == False:
+    #         last_zero = True
+    #         verbose('')
+    #     elif convert(byte) != "00" and last_zero == True:
+    #         last_zero = False
+    #         verbose('')
+    #     verbose(convert(byte),end=" ")
+
+    #preamble
+    verbose(convert(fh.read(13)))
+    while data := fh.read(8):
+        id = convert(data)
+        length = struct.unpack('B', fh.read(1))[0]
+
+        pad = fh.read(7)
+        if(pad != b'\x00\x00\x00\x00\x00\x00\x00'):
+            fh.seek(-7-8,1)
+            print("Pad check failed")
+            return None
+
+        data = convert(fh.read(length))
+        verbose(id + " : "+ convert(pad) +" : " + data)
+
+def worst_case(fh):
     last_zero = False
     while byte := fh.read(1):
         if convert(byte) == "00" and last_zero == False:
@@ -219,14 +279,14 @@ def getInfo(filename,delete = False):
         while get_loadout_packet(fh,special_bytes):
             continue
 
-        while get_spec_packet(fh,special_bytes):
+        while get_spec_packet(fh):
             continue
 
         while get_unknown_bytes(fh):
             continue
 
-        while data := fh.read(8):
-            verbose(convert(data))
+        while worst_case(fh):
+            continue
 
     if(delete):
         os.remove(filename)

@@ -284,7 +284,7 @@ def getStaticInfo(filename,delete = False):
 
 def main():
     global Verbose
-    #ensure_dir(location)
+    ensure_dir(tempDir)
 
     parser = argparse.ArgumentParser()
     parser.add_argument('ReplayFile',help="R6 replay file that needs to be examined")

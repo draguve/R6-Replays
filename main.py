@@ -28,6 +28,23 @@ maps = {
     "42090092951" : "Coastline"
 }
 
+# Credit to wholivesinapineappleunderthesea for this part 
+modes = {
+    "2" : "MATCHMAKING_PVP_RANKED",
+	"3" : "MATCHMAKING_PVE",
+	"4" :"MATCHMAKING_PVE_PARTY",
+	"5" : "MATCHMAKING_PVE_LONEWOLF",
+	"6" : "OPERATIONS",
+	"7" : "CUSTOMGAME_PVP",
+	"8" : "CUSTOMGAME_PVP_DEDICATED",
+	"9" : "DEV",
+	"A" : "MATCHMAKING_PVP_EVENT",
+	"B" : "MATCHMAKING_PVP_NEWCOMER" ,
+	"C" : "MATCHMAKING_PVP_UNRANKED",
+	"D" : "MATCHREPLAY",
+	"E" : "PLATFORM_TOURNAMENT"
+}
+
 teams = {}
 
 def verbose(data,end=None):
@@ -122,11 +139,17 @@ def get_settings(fh):
     return (variable,value)
 
 def worldid(settings):
+    teams["Map"] = maps.get(settings[1],settings[1])
     print("MAP : " + maps.get(settings[1],settings[1]),)
 
 def round_number(settings,fh):
     overtimeround = int(get_settings(fh)[1]) +  int(settings[1])
+    teams["RoundNumber"] = str(overtimeround)
     print("Round Number : " + str(overtimeround))
+
+def match_type(settings):
+    teams["MatchType"] = modes.get(settings[1],settings[1])
+    print("Match Type : " + teams["MatchType"])
 
 def teamname(setting):
     team = setting[0][-1]
@@ -209,6 +232,8 @@ def getInfo(filename,delete = False):
                 worldid(settings)
             elif settings[0] == "teamname0" or settings[0] == "teamname1":
                 teamname(settings)
+            elif settings[0] == "matchtype":
+                match_type(settings)
             else:
                 verbose("Data : "+ settings[0] + " ------  " + settings[1])
         

@@ -220,18 +220,23 @@ def get_unknown_bytes(fh):
 
     #preamble
     verbose(convert(fh.read(13)))
+
     while data := fh.read(8):
         id = convert(data)
-        length = struct.unpack('B', fh.read(1))[0]
+        lengthByteA = fh.read(1)
+        lengthByteB = fh.read(1)
+        lengthA = struct.unpack('<B',lengthByteA)[0]
+        lengthB = struct.unpack('<B',lengthByteB)[0]
+        length = lengthB * 256 + lengthA
 
-        pad = fh.read(7)
-        if(pad != b'\x00\x00\x00\x00\x00\x00\x00'):
-            fh.seek(-7-8,1)
+        pad = fh.read(6)
+        if(pad != b'\x00\x00\x00\x00\x00\x00'):
+            fh.seek(-16,1)
             print("Pad check failed")
             return None
 
         data = convert(fh.read(length))
-        verbose(id + " : "+ convert(pad) +" : " + data)
+        verbose(f"{id} : {convert(lengthByteA)} {convert(lengthByteB)} : {convert(pad)} : {data}")
 
 def worst_case(fh):
     last_zero = False

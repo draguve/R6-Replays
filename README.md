@@ -1,4 +1,4 @@
-# How to use it as is
+# How to 
 you need to install all the dependencies using:
 
 `
